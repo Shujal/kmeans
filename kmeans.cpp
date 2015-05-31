@@ -102,7 +102,6 @@ static PyObject* kmeans(PyObject* self, PyObject* args){
 	if(!PyArg_ParseTuple(args,"Oid",&listPointer,&k,&delta))return NULL;
 	if(!PyList_Check(listPointer))return NULL;
 	int n = PyList_Size(listPointer);
-	cout<<"List pointer fetched"<<endl;
 	if(n<=0)return NULL;
 	vector<vector<int> > points(n,vector<int>()); 
 	int dim;
@@ -111,7 +110,6 @@ static PyObject* kmeans(PyObject* self, PyObject* args){
 		if(!PyTuple_Check(first))return NULL;
 		dim=PyTuple_Size(first);
 	}
-	cout<<"List populated"<<endl;
 	for (int i = 0; i < n; i++) {
 		
 		PyObject* point = PyList_GetItem(listPointer,i);
@@ -126,9 +124,7 @@ static PyObject* kmeans(PyObject* self, PyObject* args){
 		}
 		
 	}
-	cout<<"List filled"<<endl;
 	vector<vector<int> > retVal = kmeans(points,k,delta);
-	cout<<"Executed"<<endl;
 	PyObject* ans = PyList_New(k);
 	for (int i = 0; i < k; i++) {
 		PyObject* point = PyTuple_New(dim);
@@ -139,7 +135,6 @@ static PyObject* kmeans(PyObject* self, PyObject* args){
 		PyList_SetItem(ans,i,point);
 	}
 
-	cout<<"Output created"<<endl;
 	return Py_BuildValue("O",ans);
 
 	
