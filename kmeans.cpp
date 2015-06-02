@@ -18,11 +18,10 @@ vector<vector<int> > kmeansInner(vector<pair<vector<int>, int> > points, int k, 
 	> clusters;
 
 	vector<pair<vector<int>,int> >::iterator first=points.begin();
-	vector<pair<vector<int>,int> >::iterator kth=points.begin();
-	std::advance(kth,k);
-	random_shuffle(first,kth);
-
-	for(vector<pair<vector<int>,int> >::iterator i=first;i!=kth;i++){
+	vector<pair<vector<int>,int> >::iterator last=points.end();
+	random_shuffle(first,last);
+	vector<pair<vector<int>,int> >::iterator i=first;
+	for(int counter=0;counter<k;i++,counter++){
 		vector<double> coords;
 		for(vector<int>::iterator j=i->first.begin();j!=i->first.end();j++){
 			coords.push_back((double)(*j));
