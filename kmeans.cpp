@@ -4,9 +4,11 @@
 #include <limits>
 #include <utility>
 #include <iostream>
+#include <map>
 using namespace std;
 
-vector<vector<int> > kmeans(vector<vector<int> > points, int k, double delta){
+
+vector<vector<int> > kmeansInner(vector<pair<vector<int>, int> > points, int k, double delta){
 
 	vector<
 		pair<
@@ -15,21 +17,21 @@ vector<vector<int> > kmeans(vector<vector<int> > points, int k, double delta){
 		>
 	> clusters;
 
-	vector<vector<int> >::iterator first=points.begin();
-	vector<vector<int> >::iterator kth=points.begin();
+	vector<pair<vector<int>,int> >::iterator first=points.begin();
+	vector<pair<vector<int>,int> >::iterator kth=points.begin();
 	std::advance(kth,k);
 	random_shuffle(first,kth);
 
-	for(vector<vector<int> >::iterator i=first;i!=kth;i++){
+	for(vector<pair<vector<int>,int> >::iterator i=first;i!=kth;i++){
 		vector<double> coords;
-		for(vector<int>::iterator j=i->begin();j!=i->end();j++){
+		for(vector<int>::iterator j=i->first.begin();j!=i->first.end();j++){
 			coords.push_back((double)(*j));
 		}
 		clusters.push_back(make_pair(coords,vector<int>()));
 	}
 
 	int n = points.size();
-	int dim = points[0].size();
+	int dim = points[0].first.size();
 	while(1){
 		
 		for (int i = 0; i < n; i++) { // for each point
@@ -43,7 +45,7 @@ vector<vector<int> > kmeans(vector<vector<int> > points, int k, double delta){
 
 				for (int coord = 0; coord < dim; coord++) {
 					
-					double dx = points[i][coord]-clusters[j].first[coord];
+					double dx = points[i].first[coord]-clusters[j].first[coord];
 					distance+=dx*dx;
 					
 				}
@@ -64,10 +66,12 @@ vector<vector<int> > kmeans(vector<vector<int> > points, int k, double delta){
 			
 			vector<double> coords(dim); //new center
 			for(int coord = 0; coord < dim; coord++){
+				int count=0;
 				for(vector<int>::iterator j=clusters[i].second.begin();j!=clusters[i].second.end();j++){
-					coords[coord]+=points[*j][coord];
+					coords[coord]+=points[*j].first[coord]*points[*j].second;
+					count+=points[*j].second;
 				}
-				coords[coord]/=clusters[i].second.size();
+				coords[coord]/=count;
 			}
 			double dist=0;
 			for (int coord = 0; coord < dim; coord++) {
@@ -90,6 +94,20 @@ vector<vector<int> > kmeans(vector<vector<int> > points, int k, double delta){
 	return ans;
 
 }
+
+vector<vector<int> > kmeans(vector<vector<int> > points, int k, double delta){
+
+	map<vector<int>,int> counter;
+	for(vector<vector<int> >::iterator it=points.begin();it!=points.end();it++){
+		counter[*it]++;
+	}
+	vector<pair<vector<int>,int> > countedPoints;
+	for(map<vector<int>,int>::iterator it = counter.begin();it!=counter.end();it++){
+		countedPoints.push_back(*it);
+	}
+	return kmeansInner(countedPoints,k,delta);
+}
+
 
 
 
