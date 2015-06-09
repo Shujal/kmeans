@@ -8,7 +8,7 @@
 using namespace std;
 
 
-vector<vector<int> > kmeansInner(vector<pair<vector<int>, int> > points, int k, double delta){
+vector<pair<vector<int>,int> > kmeansInner(vector<pair<vector<int>, int> > points, int k, double delta){
 
 	vector<
 		pair<
@@ -32,7 +32,9 @@ vector<vector<int> > kmeansInner(vector<pair<vector<int>, int> > points, int k, 
 	int n = points.size();
 	int dim = points[0].first.size();
 	while(1){
-		
+		for (int i = 0; i < k; i++) {
+			clusters[i].second.clear();
+		}
 		for (int i = 0; i < n; i++) { // for each point
 
 			double nearestDistance = numeric_limits<double>::infinity();
@@ -64,8 +66,9 @@ vector<vector<int> > kmeansInner(vector<pair<vector<int>, int> > points, int k, 
 		for (int i = 0; i < k; i++) { // for each cluster
 			
 			vector<double> coords(dim); //new center
+			int count=0;
 			for(int coord = 0; coord < dim; coord++){
-				int count=0;
+				count=0;
 				for(vector<int>::iterator j=clusters[i].second.begin();j!=clusters[i].second.end();j++){
 					coords[coord]+=points[*j].first[coord]*points[*j].second;
 					count+=points[*j].second;
@@ -78,23 +81,25 @@ vector<vector<int> > kmeansInner(vector<pair<vector<int>, int> > points, int k, 
 				dist+=d*d;
 				clusters[i].first[coord]=coords[coord];
 			}
+			clusters[i].second[0]=count;
 			if(dist>maxDist)maxDist=dist;
 		}
 
 		if(maxDist<=delta)break;
 	}
 
-	vector<vector<int> > ans(k,vector<int>());
+	vector<pair<vector<int>,int> > ans(k,make_pair(vector<int>(),0));
 	for (int i = 0; i < k; i++) {
 		for (int j = 0; j < dim; j++) {
-			ans[i].push_back((int)(clusters[i].first[j]));
+			ans[i].first.push_back((int)(clusters[i].first[j]));
 		}
+		ans[i].second=clusters[i].second[0];
 	}
 	return ans;
 
 }
 
-vector<vector<int> > kmeans(vector<vector<int> > points, int k, double delta){
+vector<pair<vector<int>,int> > kmeans(vector<vector<int> > points, int k, double delta){
 
 	map<vector<int>,int> counter;
 	for(vector<vector<int> >::iterator it=points.begin();it!=points.end();it++){
@@ -141,15 +146,20 @@ static PyObject* kmeans(PyObject* self, PyObject* args){
 		}
 		
 	}
-	vector<vector<int> > retVal = kmeans(points,k,delta);
+	vector<pair<vector<int>,int> > retVal = kmeans(points,k,delta);
 	PyObject* ans = PyList_New(k);
 	for (int i = 0; i < k; i++) {
+		PyObject* element = PyTuple_New(2);
 		PyObject* point = PyTuple_New(dim);
+		PyObject* count = PyInt_FromLong(retVal[i].second);
+		
 		for (int j = 0; j < dim; j++) {
-			PyObject* coord = PyInt_FromLong(retVal[i][j]);
+			PyObject* coord = PyInt_FromLong(retVal[i].first[j]);
 			PyTuple_SetItem(point,j,coord);
 		}
-		PyList_SetItem(ans,i,point);
+		PyTuple_SetItem(element,0,point);
+		PyTuple_SetItem(element,1,count);
+		PyList_SetItem(ans,i,element);
 	}
 
 	return Py_BuildValue("O",ans);
